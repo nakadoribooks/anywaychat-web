@@ -1,0 +1,52 @@
+<html lang="ja">
+<head>
+    <meta charset="utf8" />
+    <!-- ライブラリの読み込み 今は気にしない -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.5.0/css/bulma.min.css">
+    <script src="https://unpkg.com/vue"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.24.0/babel.js"></script> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/2.0.2/anime.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.2.0/firebase.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/3.8.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/3.8.0/firebase-database.js"></script>
+
+    <!-- 自分で書いたjavascriptの読み込み -->
+    <script type='text/babel' src="script.js"></script>
+    <!-- 自分で書いたcssの読み込み -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id='app'>
+    <header>
+        <h1 class="title is-5">NakadoriChat</h1>
+        <p class="chaturl subtitle"><a v-bind:href="chatUrl" target="_blank">{{chatUrl}}</a></p>
+    </header>
+
+    <div id="message-contents">
+        <div v-for="message in messageList" class="message-wrapper is-clearfix">
+            <div class="box" v-bind:class="{'mymessage' : isMyMessage(message) }">
+                <div class="content">
+                    <p>
+                    <strong>{{message.userName}}</strong> <small>{{displayTime(message)}}</small>
+                    <br />
+                    {{message.message}}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="field is-grouped">
+            <div class="control is-expanded">
+                <input v-model="message" v-on:keydown.enter="send" class="input is-medium" type="text" placeholder="Message" />
+            </div>
+            <div class="control control-submit">
+                <button v-bind:disabled="message.length==0" v-on:click="send" class="button is-primary button-submit">送信</button>
+            </div>
+        </div>
+    </footer>
+</div>
+</body>
+</html>

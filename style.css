@@ -1,0 +1,70 @@
+/**
+ primaryColor: #00d1b2
+**/
+
+header{
+    position:fixed;
+    width:100%;
+    background:#00d1b2;
+    z-index:2;
+    height:55px;
+}
+
+#app header h1{
+    padding-left:10px;
+    padding-top:8px;
+    color:#ffffff;
+}
+
+.chaturl{
+    padding-left:10px;
+}
+
+.chaturl a{
+    color:#ffffff;
+    font-size:14px;
+}
+
+footer{
+    position:fixed;
+    bottom:0px;
+    width:100%;
+    height:66px;
+    border-top:1px solid #aaaaaa;
+    background:#ffffff;
+}
+
+footer .field{
+    padding:10px;
+}
+
+.button-submit{
+    height:45px;
+    line-height:1.0;
+    width:100%;
+}
+
+.control-submit{
+    width:20%;
+}
+
+#message-contents{
+    z-index:1;
+    padding: 55px 10px 76px 10px;
+    background:#ffffff;
+}
+
+.message-wrapper{
+    margin:20px 10px;
+}
+
+.message-wrapper .box{
+    float:left;
+}
+.message-wrapper .box.mymessage{
+    float:right;
+}
+
+.mymessage p{
+    text-align: right;
+}
