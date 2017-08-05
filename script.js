@@ -64,7 +64,11 @@ let app = new Vue({
         // なかったとき
         else{
             let createdAt = this.timestamp()
+
+            // 新しいチャットを作って
             this.chatRef = ref.push()
+
+            // 保存する
             this.chatRef.set({
                 createdAt: createdAt
                 , createdAtReverse: -createdAt
@@ -81,9 +85,11 @@ let app = new Vue({
             return;
         }
 
+        // 新しいメッセージを作って
         let messageRef = firebase.database().ref('messages').push()
-      
         let createdAt = this.timestamp()
+
+        // 保存する
         let chat = this.chatRef.key
         messageRef.set({
             chat: chat
@@ -94,7 +100,8 @@ let app = new Vue({
             , createdAtReverse: -createdAt
         })
 
-      this.message = ""
+        // 入力エリアリセット
+        this.message = ""
     }
 
     // メッセージを読み込む
@@ -104,8 +111,6 @@ let app = new Vue({
 
         // 最初に全部取ってくる
         loadRef.once('value').then((snapshot) => {
-
-            console.log("on value")
 
             var messageList = []            
             snapshot.forEach(function(childSnapshot) {
@@ -156,7 +161,6 @@ let app = new Vue({
     scrollToBottom :function() {
         setTimeout(()=>{
             let height = Math.max(0, document.body.scrollHeight - document.body.clientHeight)
-            console.log("height", height)
             anime({
                 targets: "body",
                 scrollTop: height,
