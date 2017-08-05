@@ -3,14 +3,13 @@ let app = new Vue({
 
   // 初期化
   created: function () {
-    console.log("created")
 
     // ユーザ名の設定
     let inputedUserName = window.prompt("ユーザ名を入力してください", "");
     this.userName = inputedUserName
     
     if(inputedUserName.length == 0){
-        // 入力がなかった場合
+        入力がなかった場合
         let dummyNameList = ['太宰治','三島由紀夫','カフカ','田中角栄', '大塩平八郎', '土方巽', 'アルベルト・アインシュタイン', 'バラモス', 'メタルスライム'];
         this.userName =  dummyNameList[Math.floor(Math.random() * dummyNameList.length)];
     }
@@ -28,10 +27,11 @@ let app = new Vue({
   // これ大事
   data: {
     message: ""
-    , userName: "nakadoriBooks"
+    , userName: ""
     , userId: Math.random().toString(36).slice(-8)
     , messageList: []
-    , chatUrl: ""
+    , developerName: "nakadoriBooks"
+    , developerSite: "https://twitter.com/nakadoribooks"
   },
 
   // 処理
@@ -53,10 +53,11 @@ let app = new Vue({
     // チャット読み込み
     setupChat: function(){
         let ref = firebase.database().ref('chats')
-        let params = location.search.match(/chatId=(.*?)(&|$)/)
+        let hash = location.hash
+
         // chatId があったとき
-        if(params != null){
-            let chatId = params[1]
+        if(hash != null && hash.length > 0){
+            let chatId = hash.slice( 1 ) ;
             this.chatRef = ref.child(chatId)
             console.log("read chat", chatId)
         }
@@ -69,10 +70,9 @@ let app = new Vue({
                 , createdAtReverse: -createdAt
             })
 
+            location.href = location.origin + location.pathname + "#" + this.chatRef.key
             console.log("create chat", this.chatRef.key)
         }
-
-        this.chatUrl = location.origin + location.pathname + "?chatId=" + this.chatRef.key
     },
 
     // メッセージを送る
