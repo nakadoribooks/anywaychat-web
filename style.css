@@ -25,6 +25,10 @@ header{
     font-size:14px;
 }
 
+.chaturl a:hover{
+    text-decoration: underline;
+}
+
 footer{
     position:fixed;
     bottom:0px;

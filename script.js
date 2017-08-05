@@ -9,7 +9,7 @@ let app = new Vue({
     this.userName = inputedUserName
     
     if(inputedUserName.length == 0){
-        入力がなかった場合
+        // 入力がなかった場合
         let dummyNameList = ['太宰治','三島由紀夫','カフカ','田中角栄', '大塩平八郎', '土方巽', 'アルベルト・アインシュタイン', 'バラモス', 'メタルスライム'];
         this.userName =  dummyNameList[Math.floor(Math.random() * dummyNameList.length)];
     }
