@@ -23,7 +23,6 @@ let app = new Vue({
   // 初期化
   created: function () {
 
-   // 入力がなかった場合
    let dummyNameList = ['太宰治','三島由紀夫','カフカ','田中角栄', '大塩平八郎', '土方巽', 'アルベルト・アインシュタイン', 'バラモス', 'メタルスライム'];
    this.userName =  dummyNameList[Math.floor(Math.random() * dummyNameList.length)];
 
@@ -31,7 +30,6 @@ let app = new Vue({
     this.setupFirebase().then(()=>{
         // chatの設定
         this.setupChat()
-    
         // メッセージを読み込む
         this.loadMessage()
     })
@@ -210,7 +208,6 @@ let app = new Vue({
                 this.messageList.push(data)
                 this.scrollToBottom()
             })
-
         })
     },
 
