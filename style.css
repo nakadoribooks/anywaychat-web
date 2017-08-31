@@ -80,7 +80,7 @@ footer .field{
 }
 
 #qrImage{
-    position: absolute;
+    position: fixed;
     right: 0px;
     top:55px;
     display:none;

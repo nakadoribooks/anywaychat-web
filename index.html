@@ -12,7 +12,7 @@
 
     <!-- ▼画面上部の緑の部分 -->
     <header>
-        <p id="qrImageIcon" v-on:mouseenter="showQr" v-on:mouseleave="hideQr"><img :src="qrUrl" /></p>
+        <p id="qrImageIcon" v-on:mouseenter="showedQr = true" v-on:mouseleave="showedQr = false"><img :src="qrUrl" /></p>
         <h1 class="title is-5">AnywayChat</h1>
         <p class="chaturl subtitle"><a v-bind:href="developerSite" target="_blank">created by {{developerName}}</a></p>
     </header>
@@ -26,7 +26,8 @@
             <div class="box" v-bind:class="{'mymessage' : isMyMessage(message) }">
                 <div class="content">
                     <p>
-                    <strong>{{message.userName}}</strong> <small>{{displayTime(message)}}</small>
+                    <strong>{{message.userName}}</strong><br />
+                    <small>{{displayTime(message)}} | {{platformName(message)}} </small>
                     <br />
                     {{message.message}}
                     </p>

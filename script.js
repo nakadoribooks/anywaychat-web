@@ -1,7 +1,20 @@
 let PlatformType = {
-    "browser": { val: "browser", name: "ブラウザ" },  
+    "browser": { val: "browser", name: "Browser" },  
     "ios": { val: "ios", name : "iOS" },
-    "android": { val: "android", name: "Android" }
+    "android": { val: "android", name: "Android" },
+
+    name:function(val){
+        switch(val){
+            case this.browser.val:
+                return this.browser.name;
+            case this.ios.val:
+                return this.ios.name;
+            case this.android.val:
+                return this.android.name;       
+        }
+
+        return "unknown"
+    }
 }
 
 let app = new Vue({
@@ -121,9 +134,7 @@ let app = new Vue({
             , platform: PlatformType.browser.val
         })
 
-        var val = {}
-        val[message.key] = 1
-        this.chatRef.child("messageList").child(message.key).set(val)
+        this.chatRef.child("messageList").child(message.key).set(1)
 
         // 入力エリアリセット
         this.message = ""
@@ -216,17 +227,13 @@ let app = new Vue({
         }, 100)
     },
 
-    showQr: function(){
-        this.showedQr = true
-    },
-
-    hideQr: function(){
-        this.showedQr = false
-    },
-
     // おれのメッセージ？
     isMyMessage: function(message){
         return this.userId == message.userId
+    },
+
+    platformName: function(message){
+        return PlatformType.name(message.platform)
     },
 
     displayTime: function(message) {
@@ -234,9 +241,6 @@ let app = new Vue({
 
         var date = new Date(timestamp)
         let now = new Date(this.timestamp())
-
-
-
         var diff = now.getTime() - date.getTime()
         var d = new Date(diff);
 
