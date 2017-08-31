@@ -72,3 +72,20 @@ footer .field{
 .mymessage p{
     text-align: right;
 }
+
+#qrImageIcon{
+    float:right;
+    width:45px;
+    margin:5px;
+}
+
+#qrImage{
+    position: absolute;
+    right: 0px;
+    top:55px;
+    display:none;
+}
+#qrImage.showedQr{
+    display:block;
+}
+

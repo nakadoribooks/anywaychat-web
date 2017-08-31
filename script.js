@@ -1,37 +1,40 @@
+let PlatformType = {
+    "browser": { val: "browser", name: "ブラウザ" },  
+    "ios": { val: "ios", name : "iOS" },
+    "android": { val: "android", name: "Android" }
+}
+
 let app = new Vue({
   el: '#app',
 
   // 初期化
   created: function () {
 
-    // ユーザ名の設定
-    let inputedUserName = window.prompt("ユーザ名を入力してください", "");
-    this.userName = inputedUserName
-    
-    if(inputedUserName.length == 0){
-        // 入力がなかった場合
-        let dummyNameList = ['太宰治','三島由紀夫','カフカ','田中角栄', '大塩平八郎', '土方巽', 'アルベルト・アインシュタイン', 'バラモス', 'メタルスライム'];
-        this.userName =  dummyNameList[Math.floor(Math.random() * dummyNameList.length)];
-    }
+   // 入力がなかった場合
+   let dummyNameList = ['太宰治','三島由紀夫','カフカ','田中角栄', '大塩平八郎', '土方巽', 'アルベルト・アインシュタイン', 'バラモス', 'メタルスライム'];
+   this.userName =  dummyNameList[Math.floor(Math.random() * dummyNameList.length)];
 
     // firebaseの設定
-    this.setupFirebase()
-
-    // chatの設定
-    this.setupChat()
-
-    // メッセージを読み込む
-    this.loadMessage()
+    this.setupFirebase().then(()=>{
+        // chatの設定
+        this.setupChat()
+    
+        // メッセージを読み込む
+        this.loadMessage()
+    })
   },
 
   // これ大事
   data: {
     message: ""
     , userName: ""
+    , chatId: ""
     , userId: Math.random().toString(36).slice(-8)
     , messageList: []
     , developerName: "nakadoriBooks"
     , developerSite: "https://twitter.com/nakadoribooks"
+    , qrUrl: ""
+    , showedQr: false
   },
 
   // 処理
@@ -39,6 +42,7 @@ let app = new Vue({
 
     // firebaeの設定
     setupFirebase: function(){
+        
         var config = {
             apiKey: "AIzaSyBWasVTMVGAc1c8IlrXIdKYuIN5i8yMk-I",
             authDomain: "nakadorichat.firebaseapp.com",
@@ -48,6 +52,22 @@ let app = new Vue({
             messagingSenderId: "46816258733"
         };
         firebase.initializeApp(config);
+
+        return new Promise((resolve, reject)=>{
+            firebase.database().ref("/.info/serverTimeOffset").on('value', (offset) => {
+                var offsetVal = offset.val() || 0;
+                this.timestampOffset = offsetVal
+                resolve()
+            });
+        })
+    },
+
+    timestamp: function(){
+        return Date.now() + this.timestampOffset;
+    },
+
+    messageRef: function(){
+        return firebase.database().ref('messages')
     },
 
     // チャット読み込み
@@ -75,8 +95,9 @@ let app = new Vue({
             })
 
             location.href = location.origin + location.pathname + "#" + this.chatRef.key
-            console.log("create chat", this.chatRef.key)
         }
+
+        this.qrUrl = "http://chart.apis.google.com/chart?chs=150x150&cht=qr&chl=anywaychat://" + this.chatRef.key
     },
 
     // メッセージを送る
@@ -86,19 +107,23 @@ let app = new Vue({
         }
 
         // 新しいメッセージを作って
-        let messageRef = firebase.database().ref('messages').push()
-        let createdAt = this.timestamp()
+        let message = this.messageRef().push()
+        let createdAt = firebase.database.ServerValue.TIMESTAMP
 
         // 保存する
         let chat = this.chatRef.key
-        messageRef.set({
+        message.set({
             chat: chat
             , message:this.message
             , userName: this.userName
             , userId: this.userId
             , createdAt: createdAt
-            , createdAtReverse: -createdAt
+            , platform: PlatformType.browser.val
         })
+
+        var val = {}
+        val[message.key] = 1
+        this.chatRef.child("messageList").child(message.key).set(val)
 
         // 入力エリアリセット
         this.message = ""
@@ -107,53 +132,74 @@ let app = new Vue({
     // メッセージを読み込む
     , loadMessage:function(){
         let chatKey = this.chatRef.key
-        let loadRef = firebase.database().ref("messages").orderByChild("chat").equalTo(chatKey)
+        
+        // 最初に全部取ってくる、
+        let messageListRef = this.chatRef.child("messageList")
 
-        // 最初に全部取ってくる
-        loadRef.once('value').then((snapshot) => {
+        // 1. messageIdのリスト(messageList)
+        messageListRef.once('value').then((snapshot) => {
+            // 2. message の実態を持ってくる
+            var promiseList = []
+            let messageRef = this.messageRef()
 
-            var messageList = []            
             snapshot.forEach(function(childSnapshot) {
-                var data = childSnapshot.val()
-                data.key = childSnapshot.key
-                messageList.push(data)
+                var messageKey = childSnapshot.key
+                promiseList.push(messageRef.child(messageKey).once("value"))
             })
+            
+            return Promise.all(promiseList)
+        }).then((results) => {
+            // 3. 整形
+            var messageList = []
+            for(var i=0, max=results.length;i<max;i++){
+                let row = results[i]
+                var data = row.val()
+                data.key = row.key
+                messageList.push(data)
+            }
 
-            // 日付でソート
-            messageList.sort(function(a,b){
+            // 4. 日付でソート
+            messageList.sort((a,b) => {
                 if( a.createdAt < b.createdAt ) return -1;
                 if( a.createdAt > b.createdAt ) return 1;
                 return 0;
             });
 
-            // 表示に反映
+            // 5. 表示に反映
             this.messageList = messageList
 
-            // 追加の監視
-            this.observeMessage()
-
-            // 下までスクロール
+            // 6. 下までスクロール
             this.scrollToBottom()
+
+            // 7. 追加の監視
+            this.observeMessage()
         });
     },
 
     // メッセージの監視
     observeMessage: function(){
-        let chatKey = this.chatRef.key
-        let chatRef = firebase.database().ref("messages").orderByChild("chat").equalTo(chatKey)
-        chatRef.on("child_added", (snapshot) => {
-            let newMessage = snapshot.val()
-            newMessage.key = snapshot.key
+        let messageListRef = this.chatRef.child("messageList")
+        messageListRef.on("child_added", (snapshot) => {
+            let newMessageKey = snapshot.key
+
+            // すでにあるやつは弾く
             for(var i=0,max=this.messageList.length;i<max;i++) {
                 let message = this.messageList[i]
-                if(message.key == newMessage.key){
+                if(message.key == newMessageKey){
                     return
                 }
             }
+            
+            // 実態を取りに行く
+           this.messageRef().child(newMessageKey).once("value").then((snapshot)=>{
+    
+                // 整形して表示に反映
+                let data = snapshot.val()
+                data.key = snapshot.key
+                this.messageList.push(data)
+                this.scrollToBottom()
+            })
 
-            // 表示に反映
-            this.messageList.push(newMessage)
-            this.scrollToBottom()
         })
     },
 
@@ -170,15 +216,28 @@ let app = new Vue({
         }, 100)
     },
 
+    showQr: function(){
+        this.showedQr = true
+    },
+
+    hideQr: function(){
+        this.showedQr = false
+    },
+
     // おれのメッセージ？
     isMyMessage: function(message){
         return this.userId == message.userId
     },
 
     displayTime: function(message) {
-        let timestamp = message.createdAt * 1000
+        let timestamp = message.createdAt
+
         var date = new Date(timestamp)
-        var diff = new Date().getTime() - date.getTime()
+        let now = new Date(this.timestamp())
+
+
+
+        var diff = now.getTime() - date.getTime()
         var d = new Date(diff);
 
         if (d.getUTCFullYear() - 1970) {
@@ -194,11 +253,6 @@ let app = new Vue({
         } else {
             return d.getUTCSeconds() + '秒前'
         }
-    },
-    timestamp: function(){
-        let date = new Date()
-        let timestamp = date.getTime()
-        return Math.floor( timestamp / 1000 )
     }
   }
 })
